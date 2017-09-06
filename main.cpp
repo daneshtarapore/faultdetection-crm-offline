@@ -20,17 +20,27 @@
 #define NUM_ROBOTS_EXPT 7 // Number of robots in the experiment
 #define NUMBER_FEATURES 6 // Number of features in feature vector
 
-std::string SWARM_BEHAV("SWARM_HOMING_MOVING_BEACON");
-std::string ERROR_BEHAV("FAULT_ACTUATOR_RWHEEL_SETZERO");
-std::string RAND_SEED("777");
+#define FILTER_LENGTH 100 // CRM decisions accumulated over FILTER_LENGTH/10 second window
+#define FILTER_THRESHOLD 0.5 // Robot treated as normal if it has been detected as such for more than FILTER_THRESHOLD proportion of FILTER_LENGTH time
+
+#define MODEL_START_TIME 0 // FV comprises 45s of history
+
+std::string SWARM_BEHAV;//("SWARM_DISPERSION");
+std::string ERROR_BEHAV;//("FAULT_ACTUATOR_BWHEELS_SETZERO");
+std::string RAND_SEED;//("111");
 
 /****************************************/
 /****************************************/
 
 using namespace std;
 
-int main()
+int main(int argc, char**argv)
 {
+    assert(argc == 4);
+    SWARM_BEHAV = argv[1];
+    ERROR_BEHAV = argv[2];
+    RAND_SEED   = argv[3];
+
     t_listFVsSensed               listFVsSensed;
     t_listMapFVsToRobotIds        listMapFVsToRobotIds; // ids and fvs of observed neighbours, including ids and fvs the neighbours have relayed to you
 
@@ -50,16 +60,18 @@ int main()
 
     std::vector< std::vector<unsigned> > m_vec2dPropioceptiveFV(NUM_ROBOTS_EXPT);
 
+    std::vector< std::list<unsigned> >   m_vecFilterCRMDecision(NUM_ROBOTS_EXPT);
+
     for(size_t i = 0; i < NUM_ROBOTS_EXPT; ++i)
     {
         std::string fvlog_filename;
-        fvlog_filename = "_" + SWARM_BEHAV + "_" + ERROR_BEHAV + "_" + RAND_SEED + ".explog";
+        fvlog_filename = "_" + SWARM_BEHAV + "_" + ERROR_BEHAV + "_" + RAND_SEED + ".fvlog_PropFV"; // for behav trans expt ERROR_BEHAV = DISPERSION_0.1, DISPERSION_0.2 and DISPERSION_1.0
         std::ostringstream os;
         os << RobotIndex_ARGoSID_Map[i] << fvlog_filename;
 
         std::cout << "Reading file " << os.str() << std::endl;
 
-        ifstream myfile(fvlog_filename.c_str());
+        ifstream myfile(os.str());
         if (myfile.is_open())
         {
             std::vector <unsigned> m_vecTimeSeriesSingleRobotFV;
@@ -67,12 +79,12 @@ int main()
             {
                 int step, fv;
                 myfile >> step >> fv;
-                std::cout << step << fv << '\n';
+                //std::cout << step << " " << fv << std::endl;
                 m_vecTimeSeriesSingleRobotFV.push_back(fv);
             }
             myfile.close();
             m_vec2dPropioceptiveFV[i] = m_vecTimeSeriesSingleRobotFV;
-            std::cout << "Number of steps " << m_vec2dPropioceptiveFV[i].size();
+            std::cout << "Number of steps " << m_vec2dPropioceptiveFV[i].size() << std::endl;
         }
         else cout << "Unable to open file " << os.str();
     }
@@ -87,11 +99,14 @@ int main()
     for(size_t observer_robot = 0; observer_robot < NUM_ROBOTS_EXPT; ++observer_robot)
     {
         crminAgent[observer_robot] =  new CRMinRobotAgentOptimised(RobotIndex_ARGoSID_Map[observer_robot], NUMBER_FEATURES);
-        listFVsSensed.clear();        assert(listFVsSensed.size() == 0u);
-        listMapFVsToRobotIds.clear(); assert(listMapFVsToRobotIds.size() == 0u);
 
-        for(size_t time_step = 0; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
+
+        //for(size_t time_step = 0; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
+        for(size_t time_step = MODEL_START_TIME; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
         {
+            listFVsSensed.clear();        assert(listFVsSensed.size() == 0u);
+            listMapFVsToRobotIds.clear(); assert(listMapFVsToRobotIds.size() == 0u);
+
             for(size_t observed_robot = 0; observed_robot < NUM_ROBOTS_EXPT; ++observed_robot)
             {
                 if(observer_robot == observed_robot)
@@ -111,7 +126,12 @@ int main()
                         if(observer_robot == tmp_observed_robots)
                             continue;
                         if(m_vec2dPropioceptiveFV[tmp_observed_robots][time_step] == (*it_dist).uFV)
+                        {
+//                            m_vecFilterCRMDecision[tmp_observed_robots].push_back(1u);
+//                            if(m_vecFilterCRMDecision[tmp_observed_robots].size() > FILTER_LENGTH)
+//                                m_vecFilterCRMDecision[tmp_observed_robots].pop_front();
                             m_vec2dAttackingRobots[tmp_observed_robots][time_step]++;
+                        }
                     }
                 }
                 else if((*it_dist).uMostWantedState == 2)
@@ -121,7 +141,12 @@ int main()
                         if(observer_robot == tmp_observed_robots)
                             continue;
                         if(m_vec2dPropioceptiveFV[tmp_observed_robots][time_step] == (*it_dist).uFV)
+                        {
+//                            m_vecFilterCRMDecision[tmp_observed_robots].push_back(0u);
+//                            if(m_vecFilterCRMDecision[tmp_observed_robots].size() > FILTER_LENGTH)
+//                                m_vecFilterCRMDecision[tmp_observed_robots].pop_front();
                             m_vec2dToleratingRobots[tmp_observed_robots][time_step]++;
+                        }
                     }
                 }
             }
@@ -133,14 +158,68 @@ int main()
     m_strOutput = "crm_" + SWARM_BEHAV + "_" + ERROR_BEHAV + "_" + RAND_SEED + ".result";
     std::ofstream m_cOutput; m_cOutput.open(m_strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
 
-    for(size_t time_step = 0; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
+    std::vector<double> m_vecSummary_Attack  (NUM_ROBOTS_EXPT, 0);
+    std::vector<double> m_vecSummary_Tolerate(NUM_ROBOTS_EXPT, 0);
+    std::vector<unsigned> m_vecLatency_Attack(NUM_ROBOTS_EXPT, 100000u);
+
+
+    //for(size_t time_step = 0; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
+    for(size_t time_step = MODEL_START_TIME; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
     {
         for(size_t observed_robot = 0; observed_robot < NUM_ROBOTS_EXPT; ++observed_robot)
         {
             m_cOutput << time_step << "\t" << RobotIndex_ARGoSID_Map[observed_robot] << "\t" <<
+                         m_vec2dPropioceptiveFV[observed_robot][time_step] << "\t" <<
                          m_vec2dAttackingRobots[observed_robot][time_step] << "\t" << m_vec2dToleratingRobots[observed_robot][time_step] << std::endl;
+
+
+            if(m_vec2dToleratingRobots[observed_robot][time_step]  >= m_vec2dAttackingRobots[observed_robot][time_step])
+            {
+                m_vecFilterCRMDecision[observed_robot].push_back(1u);
+                if(m_vecFilterCRMDecision[observed_robot].size() > FILTER_LENGTH)
+                    m_vecFilterCRMDecision[observed_robot].pop_front();
+            }
+            else
+            {
+                m_vecFilterCRMDecision[observed_robot].push_back(0u);
+                if(m_vecFilterCRMDecision[observed_robot].size() > FILTER_LENGTH)
+                    m_vecFilterCRMDecision[observed_robot].pop_front();
+            }
+
+            if(m_vecFilterCRMDecision[observed_robot].size() >= FILTER_LENGTH)
+            {
+                 double norm_sum_of_elems = (double)(std::accumulate(m_vecFilterCRMDecision[observed_robot].begin(), m_vecFilterCRMDecision[observed_robot].end(), 0)) /
+                                            (double) FILTER_LENGTH;
+
+                //if(m_vec2dToleratingRobots[observed_robot][time_step]  >= m_vec2dAttackingRobots[observed_robot][time_step])
+                if(norm_sum_of_elems >= FILTER_THRESHOLD)
+                {
+                    m_vecSummary_Tolerate[observed_robot]++;
+                }
+                else
+                {
+                    m_vecSummary_Attack[observed_robot]++;
+                    if(m_vecLatency_Attack[observed_robot] == 100000u)
+                    {
+                        m_vecLatency_Attack[observed_robot] = time_step;
+                    }
+                }
+            }
+
         }
         m_cOutput << std::endl;
+    }
+
+    m_cOutput << std::endl << std::endl << std::endl << std::endl << std::endl;
+
+    for(size_t observed_robot = 0; observed_robot < NUM_ROBOTS_EXPT; ++observed_robot)
+    {
+        m_vecSummary_Tolerate[observed_robot] = (double)m_vecSummary_Tolerate[observed_robot] / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH);
+        m_vecSummary_Attack[observed_robot]   = (double)m_vecSummary_Attack[observed_robot]   / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH);
+
+        m_cOutput << 100000u << "\t" << RobotIndex_ARGoSID_Map[observed_robot] << "\t" <<
+                     m_vecSummary_Attack[observed_robot] << "\t" << m_vecSummary_Tolerate[observed_robot] << "\t" << m_vecLatency_Attack[observed_robot] << std::endl;
+
     }
     m_cOutput.close();
 

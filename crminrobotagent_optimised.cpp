@@ -147,11 +147,11 @@ void CRMinRobotAgentOptimised::SimulationStepUpdatePosition(double InternalRobot
 
 
 
-    /*if(GetIdentification() == 15 && m_fInternalRobotTimer == 801)
+    if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
     {
         PrintCRMDetails(GetIdentification());
         printf("----------at start-----------\n\n");
-    }*/
+    }
 
     // Convert the feature vectors of robot agents in the vicinity to APCs for the CRM to work with
     UpdateAPCList(); //O(m-fv + n-apc)
@@ -168,11 +168,7 @@ void CRMinRobotAgentOptimised::SimulationStepUpdatePosition(double InternalRobot
     PrintTcellList(PrntRobotId);
 #endif
 
-    /*if(GetIdentification() == 15 && m_fInternalRobotTimer == 3470)
-    {
-        PrintCRMDetails(GetIdentification());
-        printf("----------after update------\n\n");
-    }*/
+
 
     // allocate memory for the new soon to be conjugates (from t-cells, apcs added), and remove non-existing conjugates (from t-cells, apcs dead)
     UpdateConjugatesToAPCList(); //O(m-apc *(~n-conj + n-tcell))
@@ -223,6 +219,12 @@ void CRMinRobotAgentOptimised::SimulationStepUpdatePosition(double InternalRobot
 #endif
 
     UpdateState();
+
+    if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
+    {
+        PrintCRMDetails(GetIdentification());
+        printf("----------after update------\n\n");
+    }
 
     /*if(GetIdentification() == 15 && m_fInternalRobotTimer == 801)
     {
@@ -1300,6 +1302,7 @@ void CRMinRobotAgentOptimised::PrintCRMDetails(unsigned id)
     PrintTcellList(id);
     /*PrintConjugatestoAPCList(id, CONJ);
     PrintConjugatestoTcellList(id, CONJ);*/
+    PrintTcellResponseToAPCList(id);
 }
 
 /******************************************************************************/
@@ -1418,7 +1421,7 @@ void CRMinRobotAgentOptimised::PrintFeatureVectorDistribution(unsigned int id)
     std::cerr << "====R" << GetIdentification() << " Feature Vector Distribution=====" <<  std::endl;
     for (it = ptr_listFVsSensed->begin(); it != ptr_listFVsSensed->end(); ++it)
         //printf("FV:%d, Robots:%f ",(*it).uFV, (*it).fRobots);
-        std::cerr << "FV: " << (*it).uFV << " Robots: " << (*it).fRobots << std::endl;
+        std::cerr << "FV: " << (*it).uFV << " Robots: " << (*it).fRobots << " MostWantedState: " << (*it).uMostWantedState << std::endl;
     std::cerr << std::endl;
 }
 
