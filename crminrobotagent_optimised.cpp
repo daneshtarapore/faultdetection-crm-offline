@@ -147,11 +147,11 @@ void CRMinRobotAgentOptimised::SimulationStepUpdatePosition(double InternalRobot
 
 
 
-    if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
+    /*if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
     {
         PrintCRMDetails(GetIdentification());
         printf("----------at start-----------\n\n");
-    }
+	} */
 
     // Convert the feature vectors of robot agents in the vicinity to APCs for the CRM to work with
     UpdateAPCList(); //O(m-fv + n-apc)
@@ -220,11 +220,11 @@ void CRMinRobotAgentOptimised::SimulationStepUpdatePosition(double InternalRobot
 
     UpdateState();
 
-    if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
+    /*if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
     {
         PrintCRMDetails(GetIdentification());
         printf("----------after update------\n\n");
-    }
+	}*/
 
     /*if(GetIdentification() == 15 && m_fInternalRobotTimer == 801)
     {

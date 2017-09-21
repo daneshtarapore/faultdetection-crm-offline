@@ -214,8 +214,8 @@ int main(int argc, char**argv)
 
     for(size_t observed_robot = 0; observed_robot < NUM_ROBOTS_EXPT; ++observed_robot)
     {
-        m_vecSummary_Tolerate[observed_robot] = (double)m_vecSummary_Tolerate[observed_robot] / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH);
-        m_vecSummary_Attack[observed_robot]   = (double)m_vecSummary_Attack[observed_robot]   / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH);
+        m_vecSummary_Tolerate[observed_robot] = (double)m_vecSummary_Tolerate[observed_robot] / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH + 1);
+        m_vecSummary_Attack[observed_robot]   = (double)m_vecSummary_Attack[observed_robot]   / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH + 1);
 
         m_cOutput << 100000u << "\t" << RobotIndex_ARGoSID_Map[observed_robot] << "\t" <<
                      m_vecSummary_Attack[observed_robot] << "\t" << m_vecSummary_Tolerate[observed_robot] << "\t" << m_vecLatency_Attack[observed_robot] << std::endl;
