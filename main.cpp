@@ -105,7 +105,7 @@ int main(int argc, char**argv)
         //for(size_t time_step = 0; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
         for(size_t time_step = MODEL_START_TIME; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
         {
-	    printf("\n robot id %d; time_step %d \n\n", observer_robot, time_step);
+	  //printf("\n robot id %d; time_step %d \n\n", observer_robot, time_step);
             listFVsSensed.clear();        assert(listFVsSensed.size() == 0u);
             listMapFVsToRobotIds.clear(); assert(listMapFVsToRobotIds.size() == 0u);
 

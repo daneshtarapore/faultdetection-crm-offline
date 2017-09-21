@@ -38,7 +38,7 @@ for exp in exp_lists:
     rand_seed = exp[len(exp)-3:]
     #print(rand_seed)
     #print("Running " + str(counter) + " of " + str(len(exp_lists)))
-    command_string = offline_crm + " " + swarm_behav + " " + fault_type + " " + rand_seed
+    command_string = "sem --no-notice -j 6 " + offline_crm + " " + swarm_behav + " " + fault_type + " " + rand_seed
     #print(command_string)
 
     x1 = os.system(command_string)
