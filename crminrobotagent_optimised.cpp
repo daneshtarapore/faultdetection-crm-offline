@@ -67,7 +67,7 @@ CRMinRobotAgentOptimised::CRMinRobotAgentOptimised(unsigned robotId, unsigned nu
 
     m_fFVtoApcscaling         = 2.0e-3;     // linear scaling
 
-    m_fIntegrationTime        = 5.0e+7; // expensive but we can optimise on this later once we know we have the right features
+    m_fIntegrationTime        = 5.0e+10; // expensive but we can optimise on this later once we know we have the right features
     //5.0e+7; // see E[2]=7.950483e-01,R[2]=1.407800e+00 below
     /*
 ====R15 Feature Vector Distribution=====
@@ -81,7 +81,7 @@ E[0]=2.811005e+00,R[0]=3.679913e-01 (A=0.002000) [History=3019]  E[2]=7.950483e-
     m_unNumberOfReceptors = 1 << (NUMBER_FEATURES_IN_FEATUREVECTOR);
 
     sites = 3U;
-    step_h = 1.0;
+    step_h = 1.0f;
 
     assert(sites == 3U);
     assert(m_fcross_affinity > 0.0);
@@ -147,11 +147,11 @@ void CRMinRobotAgentOptimised::SimulationStepUpdatePosition(double InternalRobot
 
 
 
-    if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
+    /*if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
     {
         PrintCRMDetails(GetIdentification());
         printf("----------at start-----------\n\n");
-    }
+	}*/
 
     // Convert the feature vectors of robot agents in the vicinity to APCs for the CRM to work with
     UpdateAPCList(); //O(m-fv + n-apc)
@@ -220,11 +220,11 @@ void CRMinRobotAgentOptimised::SimulationStepUpdatePosition(double InternalRobot
 
     UpdateState();
 
-    if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
+    /*if(GetIdentification() == 206 && m_fInternalRobotTimer == 2633)
     {
         PrintCRMDetails(GetIdentification());
         printf("----------after update------\n\n");
-    }
+    }*/
 
     /*if(GetIdentification() == 15 && m_fInternalRobotTimer == 801)
     {
@@ -384,7 +384,7 @@ void CRMinRobotAgentOptimised::TcellNumericalIntegration_RK2()
 {    
     double convergence_errormax = -1.0, perc_convergence_errormax;
     double integration_t = 0.0;
-    double step_h = 1.0;
+    double step_h = 1.0f;
     bool b_prevdiff0occurance = false;
     bool b_tcelldeath = false;
     list<structTcell>::iterator it_tcells;
@@ -630,7 +630,7 @@ void CRMinRobotAgentOptimised::TcellNumericalIntegration_RK2()
         m_dconvergence_error     = convergence_errormax;
         m_dpercconvergence_error = perc_convergence_errormax;
 
-        if(m_dpercconvergence_error <= 0.001)
+        if(m_dpercconvergence_error <= 1.0e-7)
             break;
 
         integration_t += step_h;
@@ -1738,15 +1738,16 @@ double CRMinRobotAgentOptimised::NegExpDistAffinity(unsigned int v1, unsigned in
         return 0.0f;*/
 
 
-    return 1.0 * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
+    //return 1.0 * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
 
 
     //for smaller samples of FV distribution
     if((((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR)) <= (1.0f/6.0f))
-        //return 1.0f;
-        return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
+        return 1.0f;
+        //return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
     else
-        return 0.0;
+        return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
+        //return 0.0;
 }
 
 /******************************************************************************/

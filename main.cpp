@@ -20,7 +20,7 @@
 #define NUM_ROBOTS_EXPT 7 // Number of robots in the experiment
 #define NUMBER_FEATURES 6 // Number of features in feature vector
 
-#define FILTER_LENGTH 100 // CRM decisions accumulated over FILTER_LENGTH/10 second window
+#define FILTER_LENGTH 1 // CRM decisions accumulated over FILTER_LENGTH/10 second window
 #define FILTER_THRESHOLD 0.5 // Robot treated as normal if it has been detected as such for more than FILTER_THRESHOLD proportion of FILTER_LENGTH time
 
 #define MODEL_START_TIME 0 // FV comprises 45s of history
@@ -45,7 +45,8 @@ int main(int argc, char**argv)
     t_listMapFVsToRobotIds        listMapFVsToRobotIds; // ids and fvs of observed neighbours, including ids and fvs the neighbours have relayed to you
 
     CRMinRobotAgentOptimised*     crminAgent[NUM_ROBOTS_EXPT];
-
+    int fv[NUM_ROBOTS_EXPT], id[NUM_ROBOTS_EXPT];
+    
 
     /****************************************************/
     std::map<size_t, size_t> RobotIndex_ARGoSID_Map;
@@ -65,9 +66,9 @@ int main(int argc, char**argv)
     for(size_t i = 0; i < NUM_ROBOTS_EXPT; ++i)
     {
         std::string fvlog_filename;
-        fvlog_filename = "_" + SWARM_BEHAV + "_" + ERROR_BEHAV + "_" + RAND_SEED + ".fvlog_PropFV"; // for behav trans expt ERROR_BEHAV = DISPERSION_0.1, DISPERSION_0.2 and DISPERSION_1.0
+        fvlog_filename = SWARM_BEHAV + "_" + ERROR_BEHAV + "_" + RAND_SEED + ".fvlog_PropFV"; // for behav trans expt ERROR_BEHAV = DISPERSION_0.1, DISPERSION_0.2 and DISPERSION_1.0
         std::ostringstream os;
-        os << RobotIndex_ARGoSID_Map[i] << fvlog_filename;
+        os << fvlog_filename;
 
         std::cout << "Reading file " << os.str() << std::endl;
 
@@ -77,10 +78,10 @@ int main(int argc, char**argv)
             std::vector <unsigned> m_vecTimeSeriesSingleRobotFV;
             while(!myfile.eof())
             {
-                int step, fv;
-                myfile >> step >> fv;
+                int step;
+                myfile >> step >> id[0] >> fv[0] >> id[1] >> fv[1] >> id[2] >> fv[2] >> id[3] >> fv[3] >> id[4] >> fv[4] >> id[5] >> fv[5] >> id[6] >> fv[6];
                 //std::cout << step << " " << fv << std::endl;
-                m_vecTimeSeriesSingleRobotFV.push_back(fv);
+                m_vecTimeSeriesSingleRobotFV.push_back(fv[i]);
             }
             myfile.close();
             m_vec2dPropioceptiveFV[i] = m_vecTimeSeriesSingleRobotFV;
@@ -104,6 +105,7 @@ int main(int argc, char**argv)
         //for(size_t time_step = 0; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
         for(size_t time_step = MODEL_START_TIME; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
         {
+	    printf("\n robot id %d; time_step %d \n\n", observer_robot, time_step);
             listFVsSensed.clear();        assert(listFVsSensed.size() == 0u);
             listMapFVsToRobotIds.clear(); assert(listMapFVsToRobotIds.size() == 0u);
 
@@ -214,8 +216,8 @@ int main(int argc, char**argv)
 
     for(size_t observed_robot = 0; observed_robot < NUM_ROBOTS_EXPT; ++observed_robot)
     {
-        m_vecSummary_Tolerate[observed_robot] = (double)m_vecSummary_Tolerate[observed_robot] / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH);
-        m_vecSummary_Attack[observed_robot]   = (double)m_vecSummary_Attack[observed_robot]   / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH);
+        m_vecSummary_Tolerate[observed_robot] = (double)m_vecSummary_Tolerate[observed_robot] / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH+1);
+        m_vecSummary_Attack[observed_robot]   = (double)m_vecSummary_Attack[observed_robot]   / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH+1);
 
         m_cOutput << 100000u << "\t" << RobotIndex_ARGoSID_Map[observed_robot] << "\t" <<
                      m_vecSummary_Attack[observed_robot] << "\t" << m_vecSummary_Tolerate[observed_robot] << "\t" << m_vecLatency_Attack[observed_robot] << std::endl;

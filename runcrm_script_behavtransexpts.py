@@ -2,7 +2,7 @@
 
 import os
 
-offline_crm='~/lpuck/faultdetection-crm-offline/build/faultdetection-crm-offline'
+offline_crm='/home/danesh/argos3-epuck/faultdetection-crm-offline/build/faultdetection-crm-offline'
 swarm_behav = "SWARM_AGGREGATION"
 
 trans_behav = "DISPERSION_0.1"
