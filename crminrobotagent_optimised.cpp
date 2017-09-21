@@ -67,7 +67,7 @@ CRMinRobotAgentOptimised::CRMinRobotAgentOptimised(unsigned robotId, unsigned nu
 
     m_fFVtoApcscaling         = 2.0e-3;     // linear scaling
 
-    m_fIntegrationTime        = 5.0e+7; // expensive but we can optimise on this later once we know we have the right features
+    m_fIntegrationTime        = 5.0e+10; // expensive but we can optimise on this later once we know we have the right features
     //5.0e+7; // see E[2]=7.950483e-01,R[2]=1.407800e+00 below
     /*
 ====R15 Feature Vector Distribution=====
@@ -630,7 +630,7 @@ void CRMinRobotAgentOptimised::TcellNumericalIntegration_RK2()
         m_dconvergence_error     = convergence_errormax;
         m_dpercconvergence_error = perc_convergence_errormax;
 
-        if(m_dpercconvergence_error <= 0.001)
+        if(m_dpercconvergence_error <= 1.0e-7)
             break;
 
         integration_t += step_h;
@@ -1738,15 +1738,16 @@ double CRMinRobotAgentOptimised::NegExpDistAffinity(unsigned int v1, unsigned in
         return 0.0f;*/
 
 
-    return 1.0 * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
+    //return 1.0 * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
 
 
     //for smaller samples of FV distribution
     if((((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR)) <= (1.0f/6.0f))
-        //return 1.0f;
-        return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
+        return 1.0f;
+        //return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
     else
-        return 0.0;
+        return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
+        //return 0.0;
 }
 
 /******************************************************************************/

@@ -20,7 +20,7 @@
 #define NUM_ROBOTS_EXPT 7 // Number of robots in the experiment
 #define NUMBER_FEATURES 6 // Number of features in feature vector
 
-#define FILTER_LENGTH 100 // CRM decisions accumulated over FILTER_LENGTH/10 second window
+#define FILTER_LENGTH 1 // CRM decisions accumulated over FILTER_LENGTH/10 second window
 #define FILTER_THRESHOLD 0.5 // Robot treated as normal if it has been detected as such for more than FILTER_THRESHOLD proportion of FILTER_LENGTH time
 
 #define MODEL_START_TIME 0 // FV comprises 45s of history
