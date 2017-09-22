@@ -63,9 +63,9 @@ CRMinRobotAgentOptimised::CRMinRobotAgentOptimised(unsigned robotId, unsigned nu
     se_rate                   = 0.0; // Source density of E cell generation
     sr_rate                   = 0.0; // Source density of R cell generation
 
-    m_fcross_affinity         = 0.15;
+    m_fcross_affinity         = 0.35; // > 3 robots needed to suppress immune response in 1HD away APC clone of 1 robot
 
-    m_fFVtoApcscaling         = 2.0e-3;     // linear scaling
+    m_fFVtoApcscaling         = 0.001f;     // Changed to exponential scaling; Search for this variable to see change 
 
     m_fIntegrationTime        = 5.0e+10; // expensive but we can optimise on this later once we know we have the right features
     //5.0e+7; // see E[2]=7.950483e-01,R[2]=1.407800e+00 below
@@ -1551,7 +1551,7 @@ void CRMinRobotAgentOptimised::UpdateAPCList()
     {
         if((*it_fvsensed).uFV == (*it_apcs).uFV)
         {
-            (*it_apcs).fAPC = (*it_fvsensed).fRobots * m_fFVtoApcscaling;
+	    (*it_apcs).fAPC = pow(10.0, (*it_fvsensed).fRobots - 1.0f) * m_fFVtoApcscaling;
             (*it_apcs).fTotalSites = (*it_apcs).fAPC * (double)sites;
 
             (*it_apcs).fEffectorConjugatesPerAPC = 0.0; (*it_apcs).fRegulatorConjugatesPerAPC = 0.0;
@@ -1567,7 +1567,7 @@ void CRMinRobotAgentOptimised::UpdateAPCList()
         if((*it_apcs).uFV > (*it_fvsensed).uFV)
         {
                 listAPCs.insert(it_apcs, structAPC((*it_fvsensed).uFV,
-                                                   (*it_fvsensed).fRobots * m_fFVtoApcscaling,
+                                                   pow(10.0, (*it_fvsensed).fRobots - 1.0f) * m_fFVtoApcscaling,
                                                    (double)sites));
             ++it_fvsensed;
 
@@ -1586,7 +1586,7 @@ void CRMinRobotAgentOptimised::UpdateAPCList()
 
     while(it_fvsensed != ptr_listFVsSensed->end()) {
             listAPCs.push_back(structAPC((*it_fvsensed).uFV,
-                                         (*it_fvsensed).fRobots * m_fFVtoApcscaling, (double)sites));
+                                         pow(10.0, (*it_fvsensed).fRobots - 1.0f) * m_fFVtoApcscaling, (double)sites));
 #ifdef FLOATINGPOINTOPERATIONS
         IncNumberFloatingPtOperations(2);  // also a multiplication of apcs*sites in constructor of structAPC
 #endif
@@ -1727,7 +1727,7 @@ double CRMinRobotAgentOptimised::NegExpDistAffinity(unsigned int v1, unsigned in
     /* how do we decide whose mask should be used */
     unsigned int hammingdistance  = CRMinRobotAgentOptimised::GetNumberOfSetBits(unXoredString);
 
-    //return 1.0 * exp(-(1.0/k) * (double)hammingdistance);
+    return 1.0 * exp(-(1.0/k) * (double)hammingdistance);
 
     // Should we normalize the hammingdistance when input to the exp function, or as above?
 
@@ -1742,11 +1742,11 @@ double CRMinRobotAgentOptimised::NegExpDistAffinity(unsigned int v1, unsigned in
 
 
     //for smaller samples of FV distribution
-    if((((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR)) <= (1.0f/6.0f))
-        return 1.0f;
+    //if((((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR)) <= (1.0f/6.0f))
+    //    return 1.0f;
         //return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
-    else
-        return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
+    //else
+    //    return 1.0f * exp(-(1.0f/k) * ((double)hammingdistance) / ((double) NUMBER_FEATURES_IN_FEATUREVECTOR));
         //return 0.0;
 }
 

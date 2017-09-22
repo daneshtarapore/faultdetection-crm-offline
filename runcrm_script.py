@@ -3,8 +3,8 @@
 import os
 import glob
 
-offline_crm='~/lpuck/faultdetection-crm-offline/build/faultdetection-crm-offline'
-raw_fv_dir="/home/danesh/lpuck/expdata/propfv/"
+offline_crm='/home/danesh/argos3-epuck/faultdetection-crm-offline/build/faultdetection-crm-offline'
+raw_fv_dir="/home/danesh/papers/2017/fd_realrobotswarm/robotfvdata/RawPropFVs"
 fv_pattern="./[0-9][0-9][0-9]_SWARM*_FAULT*_*.fvlog_PropFV"
 os.chdir(raw_fv_dir)
 tmp_exp_lists = glob.glob(fv_pattern)
@@ -35,7 +35,7 @@ for exp in exp_lists:
     rand_seed = exp[len(exp)-3:]
 
     print "Running " + str(counter) + " of " + str(len(exp_lists))
-    command_string = offline_crm + " " + swarm_behav + " " + fault_type + " " + rand_seed
+    command_string = "sem --no-notice -j 7 " + offline_crm + " " + swarm_behav + " " + fault_type + " " + rand_seed
     print command_string
 
     x1 = os.system(command_string)
