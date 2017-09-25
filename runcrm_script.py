@@ -9,7 +9,9 @@ fv_pattern="SWARM*_FAULT*_*.fvlog_PropFV"
 os.chdir(raw_fv_dir)
 tmp_exp_lists = glob.glob(fv_pattern)
 
-#print(tmp_exp_lists)
+#for affinity_value in ['0.3' '0.4' '0.5' '0.6' '0.7']:
+#    os.mkdir("affinity_" + affinity_value)    
+
 
 exp_lists=[]
 for exp in tmp_exp_lists:
@@ -38,10 +40,11 @@ for exp in exp_lists:
     rand_seed = exp[len(exp)-3:]
     #print(rand_seed)
     #print("Running " + str(counter) + " of " + str(len(exp_lists)))
-    command_string = "sem --no-notice -j 6 " + offline_crm + " " + swarm_behav + " " + fault_type + " " + rand_seed
-    #print(command_string)
 
-    x1 = os.system(command_string)
+    for affinity_counter,affinity_value in enumerate(['0.3', '0.35', '0.4', '0.45', '0.5', '0.55', '0.6', '0.65', '0.7', '0.75']):
+        command_string = "sem --no-notice -j 6 " + offline_crm + " " + swarm_behav + " " + fault_type + " " + rand_seed + " " + affinity_value  
+        #print(command_string)
+        x1 = os.system(command_string)
     
     if x1 == 0:
         print("Run started " + command_string)

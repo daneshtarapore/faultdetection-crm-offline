@@ -37,7 +37,7 @@
 /******************************************************************************/
 /******************************************************************************/
 
-CRMinRobotAgentOptimised::CRMinRobotAgentOptimised(unsigned robotId, unsigned numfeatures)
+CRMinRobotAgentOptimised::CRMinRobotAgentOptimised(unsigned robotId, unsigned numfeatures, double cross_affinity)
 {
     m_fWeight  = 1.0;
 
@@ -63,7 +63,7 @@ CRMinRobotAgentOptimised::CRMinRobotAgentOptimised(unsigned robotId, unsigned nu
     se_rate                   = 0.0; // Source density of E cell generation
     sr_rate                   = 0.0; // Source density of R cell generation
 
-    m_fcross_affinity         = 0.35;
+    m_fcross_affinity         = cross_affinity; // 2 or more neighbours at 1HD away to generate tolerance
 
     m_fFVtoApcscaling         = 0.001;     // linear scaling
 
@@ -84,6 +84,7 @@ E[0]=2.811005e+00,R[0]=3.679913e-01 (A=0.002000) [History=3019]  E[2]=7.950483e-
     step_h = 1.0f;
 
     assert(sites == 3U);
+    //printf("\n m_fcross_affinity = %f",m_fcross_affinity);
     assert(m_fcross_affinity > 0.0);
 
     m_uNumberFloatingPtOperations = 0;

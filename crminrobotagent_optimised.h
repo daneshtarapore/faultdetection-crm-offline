@@ -46,7 +46,7 @@ enum TcellIntegrationPhase : unsigned {K0, K1};
 class CRMinRobotAgentOptimised
 {
 public:
-    CRMinRobotAgentOptimised(unsigned m_uRobotId, unsigned NUMBER_OF_FEATURES);
+    CRMinRobotAgentOptimised(unsigned m_uRobotId, unsigned NUMBER_OF_FEATURES, double cross_affinity);
 
     virtual ~CRMinRobotAgentOptimised();
 

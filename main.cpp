@@ -28,6 +28,7 @@
 std::string SWARM_BEHAV;//("SWARM_DISPERSION");
 std::string ERROR_BEHAV;//("FAULT_ACTUATOR_BWHEELS_SETZERO");
 std::string RAND_SEED;//("111");
+std::string AFFINITY_VALUE;
 
 /****************************************/
 /****************************************/
@@ -36,10 +37,13 @@ using namespace std;
 
 int main(int argc, char**argv)
 {
-    assert(argc == 4);
+    assert(argc == 5);
     SWARM_BEHAV = argv[1];
     ERROR_BEHAV = argv[2];
     RAND_SEED   = argv[3];
+    AFFINITY_VALUE = argv[4];
+    double affinity_value = atof(argv[4]);
+    //printf("\n affinity_value %f", affinity_value);
 
     t_listFVsSensed               listFVsSensed;
     t_listMapFVsToRobotIds        listMapFVsToRobotIds; // ids and fvs of observed neighbours, including ids and fvs the neighbours have relayed to you
@@ -99,7 +103,7 @@ int main(int argc, char**argv)
 
     for(size_t observer_robot = 0; observer_robot < NUM_ROBOTS_EXPT; ++observer_robot)
     {
-        crminAgent[observer_robot] =  new CRMinRobotAgentOptimised(RobotIndex_ARGoSID_Map[observer_robot], NUMBER_FEATURES);
+        crminAgent[observer_robot] =  new CRMinRobotAgentOptimised(RobotIndex_ARGoSID_Map[observer_robot], NUMBER_FEATURES, affinity_value);
 
 
         //for(size_t time_step = 0; time_step < m_vec2dPropioceptiveFV[0].size(); ++time_step)
@@ -157,7 +161,7 @@ int main(int argc, char**argv)
 
 
     std::string m_strOutput;
-    m_strOutput = "crm_" + SWARM_BEHAV + "_" + ERROR_BEHAV + "_" + RAND_SEED + ".result";
+    m_strOutput = "crm_affinity_" + AFFINITY_VALUE + "_" + SWARM_BEHAV + "_" + ERROR_BEHAV + "_" + RAND_SEED + ".result";
     std::ofstream m_cOutput; m_cOutput.open(m_strOutput.c_str(), std::ios_base::trunc | std::ios_base::out);
 
     std::vector<double> m_vecSummary_Attack  (NUM_ROBOTS_EXPT, 0);
@@ -190,22 +194,34 @@ int main(int argc, char**argv)
 
             if(m_vecFilterCRMDecision[observed_robot].size() >= FILTER_LENGTH)
             {
-                 double norm_sum_of_elems = (double)(std::accumulate(m_vecFilterCRMDecision[observed_robot].begin(), m_vecFilterCRMDecision[observed_robot].end(), 0)) /
-                                            (double) FILTER_LENGTH;
+	      	   double norm_sum_of_elems = (double)(std::accumulate(m_vecFilterCRMDecision[observed_robot].begin(), m_vecFilterCRMDecision[observed_robot].end(), 0)) /
+		   (double) FILTER_LENGTH;
 
-                //if(m_vec2dToleratingRobots[observed_robot][time_step]  >= m_vec2dAttackingRobots[observed_robot][time_step])
-                if(norm_sum_of_elems >= FILTER_THRESHOLD)
-                {
-                    m_vecSummary_Tolerate[observed_robot]++;
-                }
-                else
-                {
-                    m_vecSummary_Attack[observed_robot]++;
-                    if(m_vecLatency_Attack[observed_robot] == 100000u)
-                    {
-                        m_vecLatency_Attack[observed_robot] = time_step;
-                    }
-                }
+		   //if(m_vec2dToleratingRobots[observed_robot][time_step]  >= m_vec2dAttackingRobots[observed_robot][time_step])
+		   if(norm_sum_of_elems >= FILTER_THRESHOLD)
+		   {
+		       m_vecSummary_Tolerate[observed_robot]++;
+		   }
+		   else
+		   {
+		       m_vecSummary_Attack[observed_robot]++;
+		       if(m_vecLatency_Attack[observed_robot] == 100000u)
+		       {
+			   m_vecLatency_Attack[observed_robot] = time_step;
+		       }
+		   }
+		   
+		   /*{
+		  if(m_vec2dToleratingRobots[observed_robot][time_step]  >= m_vec2dAttackingRobots[observed_robot][time_step])
+		    m_vecSummary_Tolerate[observed_robot]++;
+		  else
+		    m_vecSummary_Attack[observed_robot]++;
+
+		    if(m_vecLatency_Attack[observed_robot] == 100000u)
+		    {
+		      m_vecLatency_Attack[observed_robot] = time_step;
+		    }
+		    }*/
             }
 
         }
@@ -216,8 +232,8 @@ int main(int argc, char**argv)
 
     for(size_t observed_robot = 0; observed_robot < NUM_ROBOTS_EXPT; ++observed_robot)
     {
-        m_vecSummary_Tolerate[observed_robot] = (double)m_vecSummary_Tolerate[observed_robot] / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH+1);
-        m_vecSummary_Attack[observed_robot]   = (double)m_vecSummary_Attack[observed_robot]   / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH+1);
+        m_vecSummary_Tolerate[observed_robot] = (double)m_vecSummary_Tolerate[observed_robot] / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH+1 - MODEL_START_TIME);
+        m_vecSummary_Attack[observed_robot]   = (double)m_vecSummary_Attack[observed_robot]   / (double)(m_vec2dPropioceptiveFV[0].size() - FILTER_LENGTH+1 - MODEL_START_TIME);
 
         m_cOutput << 100000u << "\t" << RobotIndex_ARGoSID_Map[observed_robot] << "\t" <<
                      m_vecSummary_Attack[observed_robot] << "\t" << m_vecSummary_Tolerate[observed_robot] << "\t" << m_vecLatency_Attack[observed_robot] << std::endl;
