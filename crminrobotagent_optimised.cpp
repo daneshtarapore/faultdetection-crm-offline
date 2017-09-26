@@ -63,7 +63,7 @@ CRMinRobotAgentOptimised::CRMinRobotAgentOptimised(unsigned robotId, unsigned nu
     se_rate                   = 0.0; // Source density of E cell generation
     sr_rate                   = 0.0; // Source density of R cell generation
 
-    m_fcross_affinity         = 0.35; // > 3 robots needed to suppress immune response in 1HD away APC clone of 1 robot
+    m_fcross_affinity         = 0.55; // > 2 robots needed to suppress immune response in 1HD away APC clone of 1 robot
 
     m_fFVtoApcscaling         = 0.001f;     // Changed to exponential scaling; Search for this variable to see change 
 
